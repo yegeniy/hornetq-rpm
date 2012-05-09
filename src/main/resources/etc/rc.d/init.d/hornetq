@@ -1,0 +1,93 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          hornetq
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: Hornetq
+# Description:       Start the Hornetq message broker
+### END INIT INFO
+
+# Check for missing binaries (stale symlinks should not happen)
+RUN_SCRIPT="/usr/bin/${BUILD.OSIS}-${BUILD.APP}"
+test -r "$RUN_SCRIPT" || { echo "$RUN_SCRIPT not installed"; 
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 5; fi; }
+
+# Check for existence of needed config file and read it
+CONFIG=/etc/sysconfig/hornetq
+test -e "$CONFIG" || { echo "$CONFIG not existing";
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 6; fi; }
+test -r "$CONFIG" || { echo "$CONFIG not readable. Perhaps you forgot 'sudo'?";
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 6; fi; }
+
+PID_FILE="/var/run/hornetq.pid"
+
+# Source function library.
+. /etc/init.d/functions
+
+# Read config   
+[ -f "$CONFIG" ] && . "$CONFIG"
+
+RETVAL=0
+
+case "$1" in
+    start)
+    echo -n "Starting HornetQ "
+    daemon --user "$USER" --pidfile "$PID_FILE" "java $JVM_ARGS -classpath $CLASSPATH org.hornetq.integration.bootstrap.HornetQBootstrapServer hornetq-beans.xml"
+    RETVAL=$?
+    if [ $RETVAL = 0 ]; then
+        success
+    else
+        failure
+    fi
+    echo
+    ;;
+    stop)
+    echo -n "Shutting down Hornetq "
+    echo "$PID_FILE"
+    killproc -p "$PID_FILE" -d 20 hornetq
+    RETVAL=$?
+    echo
+    ;;
+    try-restart|condrestart)
+    if test "$1" = "condrestart"; then
+        echo "${attn} Use try-restart ${done}(LSB)${attn} rather than condrestart ${warn}(RH)${norm}"
+    fi
+    $0 status
+    if test $? = 0; then
+        $0 restart
+    else
+        : # Not running is not a failure.
+    fi
+    ;;
+    restart)
+    $0 stop
+    $0 start
+    ;;
+    force-reload)
+    echo -n "Reload service ${BUILD.OSIS}-${BUILD.APP} "
+    $0 try-restart
+    ;;
+    reload)
+        $0 restart
+    ;;
+    status)
+        status -p $PID_FILE ${BUILD.OSIS}-${BUILD.APP}
+    RETVAL=$?
+    ;;
+    probe)
+    ## Optional: Probe for the necessity of a reload, print out the
+    ## argument to this init script which is required for a reload.
+    ## Note: probe is not (yet) part of LSB (as of 1.9)
+
+    test "$CONFIG" -nt "$PID_FILE" && echo reload
+    ;;
+    *)
+    echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
+    exit 1
+    ;;
+esac
+exit $RETVAL

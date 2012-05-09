@@ -1,0 +1,16 @@
+HORNETQ_HOME=/usr/lib/hornetq/2.2.5
+HORNETQ_CONFIG=/etc/hornetq
+
+DATA_DIR=/var/lib/hornetq
+
+JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=3000 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Djava.rmi.server.hostname=`hostname`"
+
+#JVM_OPTS="-Dorg.hornetq.logger-delegate-factory-class-name=org.hornetq.integration.logging.Log4jLogDelegateFactory"
+
+#JVM_AGENT="-javaagent:$HORNETQ_HOME/lib/jolokia-jvm-1.0.1-agent.jar=port=3002"
+
+JVM_ARGS="-XX:+HeapDumpOnOutOfMemoryError -XX:+UseParallelGC -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -Xms512M -Xmx1024M"
+HQ_JVM_ARGS="-Dhornetq.config.dir=$HORNETQ_CONFIG -Djava.util.logging.config.file=$HORNETQ_CONFIG/logging.properties -Djava.library.path=$HORNETQ_HOME/native -Ddata.dir=$DATA_DIR"
+
+export CLASSPATH=$HORNETQ_CONFIG:$HORNETQ_HOME/schemas/:$HOME/workspace/hornetq-rpm/target/dependency/*
+export JVM_ARGS="$JVM_OPTS $HQ_JVM_ARGS $JMX_OPTS $JVM_AGENT $JVM_ARGS"
