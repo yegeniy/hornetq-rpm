@@ -8,12 +8,6 @@
 # Description:       Start the Hornetq message broker
 ### END INIT INFO
 
-# Check for missing binaries (stale symlinks should not happen)
-RUN_SCRIPT="/usr/bin/${BUILD.OSIS}-${BUILD.APP}"
-test -r "$RUN_SCRIPT" || { echo "$RUN_SCRIPT not installed"; 
-    if [ "$1" = "stop" ]; then exit 0;
-    else exit 5; fi; }
-
 # Check for existence of needed config file and read it
 CONFIG=/etc/sysconfig/hornetq
 test -e "$CONFIG" || { echo "$CONFIG not existing";
@@ -24,6 +18,8 @@ test -r "$CONFIG" || { echo "$CONFIG not readable. Perhaps you forgot 'sudo'?";
     else exit 6; fi; }
 
 PID_FILE="/var/run/hornetq.pid"
+
+USER=hornetq
 
 # Source function library.
 . /etc/init.d/functions
@@ -37,7 +33,9 @@ case "$1" in
     start)
     echo -n "Starting HornetQ "
     daemon --user "$USER" --pidfile "$PID_FILE" "java $JVM_ARGS -classpath $CLASSPATH org.hornetq.integration.bootstrap.HornetQBootstrapServer hornetq-beans.xml"
+    PID=$!
     RETVAL=$?
+    echo "$PID" > $PID_FILE
     if [ $RETVAL = 0 ]; then
         success
     else
@@ -46,7 +44,7 @@ case "$1" in
     echo
     ;;
     stop)
-    echo -n "Shutting down Hornetq "
+    echo -n "Shutting down HornetQ "
     echo "$PID_FILE"
     killproc -p "$PID_FILE" -d 20 hornetq
     RETVAL=$?
@@ -68,14 +66,14 @@ case "$1" in
     $0 start
     ;;
     force-reload)
-    echo -n "Reload service ${BUILD.OSIS}-${BUILD.APP} "
+    echo -n "Reload service HornetQ "
     $0 try-restart
     ;;
     reload)
         $0 restart
     ;;
     status)
-        status -p $PID_FILE ${BUILD.OSIS}-${BUILD.APP}
+        status -p $PID_FILE HornetQ
     RETVAL=$?
     ;;
     probe)

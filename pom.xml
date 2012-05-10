@@ -54,6 +54,7 @@
                     <projversion>2.2.5</projversion>
                     <release>10</release>
                     <copyright>ASF</copyright>
+                    <needarch>x86_64</needarch>
                     <mappings>
                         <mapping>
                             <directory>/usr/lib/hornetq/2.2.5/lib</directory>
@@ -108,7 +109,25 @@
                             </sources>
                         </mapping>
                         <mapping>
+                            <directory>/usr/lib/hornetq/2.2.5/native</directory>
+                            <sources>
+                                <source>
+                                    <location>src/main/native/libHornetQAIO64.so</location>
+                                    <targetArchitecture>x86_64</targetArchitecture>
+                                </source>
+                                <source>
+                                    <location>src/main/native/libHornetQAIO32.so</location>
+                                    <targetArchitecture>i386</targetArchitecture>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
                             <directory>/var/log/hornetq</directory>
+                            <username>${username}</username>
+                            <configuration>noreplace</configuration>
+                        </mapping>
+                        <mapping>
+                            <directory>/var/lib/hornetq/2.2.5</directory>
                             <username>${username}</username>
                             <configuration>noreplace</configuration>
                         </mapping>
@@ -120,7 +139,7 @@ if ! /usr/bin/id -g ${groupname} &>/dev/null; then
   /usr/sbin/groupadd -r ${groupname}
 fi
 if ! /usr/bin/id ${username} &>/dev/null; then
-  /usr/sbin/useradd -M -r -g ${groupname} -d /opt/hornetq-2.2 -s /sbin/nologin \
+  /usr/sbin/useradd -M -r -g ${groupname} -d /usr/lib/hornetq/2.2.5 -s /sbin/nologin \
     -c ${username} ${username} > /dev/null 2>&1
 fi
                         ]]>
