@@ -29,59 +29,41 @@ USER=hornetq
 
 RETVAL=0
 
-case "$1" in
-    start)
+start() {
     echo -n "Starting HornetQ "
-    daemon --user "$USER" --pidfile "$PID_FILE" "java $JVM_ARGS -classpath $CLASSPATH org.hornetq.integration.bootstrap.HornetQBootstrapServer hornetq-beans.xml"
+    /sbin/runuser -s /bin/sh "$USER" -c "java $JVM_ARGS -classpath $CLASSPATH org.hornetq.integration.bootstrap.HornetQBootstrapServer hornetq-beans.xml" > /dev/null 2>&1 &
     PID=$!
     RETVAL=$?
-    echo "$PID" > $PID_FILE
     if [ $RETVAL = 0 ]; then
+        echo "$PID" > $PID_FILE
         success
     else
         failure
     fi
     echo
-    ;;
-    stop)
+}
+
+stop() {
     echo -n "Shutting down HornetQ "
-    echo "$PID_FILE"
     killproc -p "$PID_FILE" -d 20 hornetq
     RETVAL=$?
     echo
+}
+
+case "$1" in
+    start)
+    start
     ;;
-    try-restart|condrestart)
-    if test "$1" = "condrestart"; then
-        echo "${attn} Use try-restart ${done}(LSB)${attn} rather than condrestart ${warn}(RH)${norm}"
-    fi
-    $0 status
-    if test $? = 0; then
-        $0 restart
-    else
-        : # Not running is not a failure.
-    fi
+    stop)
+    stop
     ;;
     restart)
-    $0 stop
-    $0 start
-    ;;
-    force-reload)
-    echo -n "Reload service HornetQ "
-    $0 try-restart
-    ;;
-    reload)
-        $0 restart
+    stop
+    start
     ;;
     status)
-        status -p $PID_FILE HornetQ
-    RETVAL=$?
-    ;;
-    probe)
-    ## Optional: Probe for the necessity of a reload, print out the
-    ## argument to this init script which is required for a reload.
-    ## Note: probe is not (yet) part of LSB (as of 1.9)
-
-    test "$CONFIG" -nt "$PID_FILE" && echo reload
+    status -p $PID_FILE HornetQ
+    RETVAL=$?    
     ;;
     *)
     echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
