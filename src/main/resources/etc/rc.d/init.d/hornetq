@@ -52,22 +52,22 @@ stop() {
 
 case "$1" in
     start)
-    start
+        start
     ;;
     stop)
-    stop
+        stop
     ;;
     restart)
-    stop
-    start
+        stop
+        start
     ;;
     status)
-    status -p $PID_FILE HornetQ
-    RETVAL=$?    
+        status -p $PID_FILE HornetQ
+        RETVAL=$?    
     ;;
     *)
-    echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
-    exit 1
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
     ;;
 esac
 exit $RETVAL
